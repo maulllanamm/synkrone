@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using synkrone.Data;
+using synkrone.Services.Implementations;
+using synkrone.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +20,8 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString)
         .UseSnakeCaseNamingConvention());
+
+builder.Services.AddScoped<IUserService, UserService>();
 
 var app = builder.Build();
 
