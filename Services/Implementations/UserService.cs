@@ -7,18 +7,25 @@ namespace synkrone.Services.Implementations;
 public class UserService: IUserService
 {
     private readonly ApplicationDbContext _context;
-    
-    public UserService(ApplicationDbContext context)
+    private readonly ILogger<UserService> _logger;
+    public UserService(ApplicationDbContext context, ILogger<UserService> logger)
     {
         _context = context;
+        _logger = logger;
     }
     
-    public async Task<UserDto?> GetUserAsync(Guid userId)
+    public async Task<UserDto?> GetByIdAsync(Guid userId)
     {
+        _logger.LogDebug("Fetching user from database: {UserId}", userId);
         var user = await _context.Users.FindAsync(userId);
 
-        if (user == null) return null;
+        if (user == null)
+        {
+            _logger.LogInformation("No user found with ID: {UserId}", userId);
+            return null;
+        }
 
+        _logger.LogInformation("User retrieved: {@User}", user);
         return new UserDto
         {
             Id = user.Id,

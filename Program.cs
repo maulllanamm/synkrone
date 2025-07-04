@@ -1,9 +1,21 @@
 using Microsoft.EntityFrameworkCore;
+using Serilog;
+using Serilog.Events;
 using synkrone.Data;
 using synkrone.Services.Implementations;
 using synkrone.Services.Interfaces;
 
+// Konfigurasi logger utama sebelum build
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information() // Level log minimum global
+    .Enrich.FromLogContext()
+    .WriteTo.Console() // 🪵 Sink #1: Menulis log ke konsol
+    .CreateLogger();
+
 var builder = WebApplication.CreateBuilder(args);
+
+// Ganti default logging provider dengan Serilog
+builder.Host.UseSerilog();
 
 // Add services to the container.
 
@@ -23,19 +35,28 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddScoped<IUserService, UserService>();
 
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+try
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    Log.Information("Starting up the application");
+
+    var app = builder.Build();
+
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI();
+    }
+
+    app.UseHttpsRedirection();
+    app.UseAuthorization();
+    app.MapControllers();
+    app.Run();
 }
-
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
-app.MapControllers();
-
-app.Run();
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Application failed to start correctly");
+}
+finally
+{
+    Log.CloseAndFlush();
+}

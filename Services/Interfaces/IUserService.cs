@@ -4,5 +4,5 @@ namespace synkrone.Services.Interfaces;
 
 public interface IUserService
 {
-    Task<UserDto> GetUserAsync(Guid userId);
+    Task<UserDto> GetByIdAsync(Guid userId);
 }
