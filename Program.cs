@@ -5,14 +5,12 @@ using synkrone.Data;
 using synkrone.Services.Implementations;
 using synkrone.Services.Interfaces;
 
-// Konfigurasi logger utama sebelum build
-Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Information() // Level log minimum global
-    .Enrich.FromLogContext()
-    .WriteTo.Console() // 🪵 Sink #1: Menulis log ke konsol
-    .CreateLogger();
-
 var builder = WebApplication.CreateBuilder(args);
+
+// Konfigurasi logger 
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .CreateLogger();
 
 // Ganti default logging provider dengan Serilog
 builder.Host.UseSerilog();
