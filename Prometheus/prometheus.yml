@@ -1,0 +1,9 @@
+global:
+  scrape_interval: 15s # Seberapa sering mengambil data
+
+scrape_configs:
+  - job_name: 'dotnet-app'
+    static_configs:
+      # 'host.docker.internal' adalah DNS name khusus di dalam Docker
+      # yang merujuk ke mesin host Anda.
+      - targets: ['host.docker.internal:5068']

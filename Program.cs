@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using OpenTelemetry.Metrics;
 using Serilog;
 using Serilog.Events;
 using synkrone.Data;
@@ -14,6 +15,14 @@ Log.Logger = new LoggerConfiguration()
 
 // Ganti default logging provider dengan Serilog
 builder.Host.UseSerilog();
+
+// Konfigurasi Matrix
+builder.Services.AddOpenTelemetry()
+    .WithMetrics(matrics => matrics
+        // Menambahkan sumber metrik otomatis dari ASP.NET Core
+        .AddAspNetCoreInstrumentation()
+        // Mengkonfigurasi exporter untuk Prometheus
+        .AddPrometheusExporter());
 
 // Add services to the container.
 
@@ -38,6 +47,9 @@ try
     Log.Information("Starting up the application");
 
     var app = builder.Build();
+    
+    // Endpoint ini akan diekspos agar bisa di-scrape oleh Prometheus
+    app.MapPrometheusScrapingEndpoint();
 
     if (app.Environment.IsDevelopment())
     {

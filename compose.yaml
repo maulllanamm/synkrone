@@ -6,9 +6,27 @@
     command: -config.file=/etc/loki/local-config.yaml
     ports:
       - "3100:3100"
+    networks:
+      - observability-net
+  # 2. Prometheus (untuk menyimpan matrix)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090" # Port untuk mengakses web UI Prometheus
+    volumes:
+      - ./prometheus:/etc/prometheus/ # Mount file konfigurasi
+    command: --config.file=/etc/prometheus/prometheus.yml
+    networks:
+      - observability-net
   # Grafana (untuk visualisasi semua data)
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
     ports:
       - "3000:3000"
+    networks:
+      - observability-net
+networks:
+  observability-net:
+    driver: bridge
