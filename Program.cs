@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using OpenTelemetry.Exporter;
 using OpenTelemetry.Metrics;
 using Serilog;
 using Serilog.Events;
@@ -13,6 +14,17 @@ var builder = WebApplication.CreateBuilder(args);
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
     .CreateLogger();
+
+builder.Services.AddOpenTelemetry()
+    .WithMetrics(metrics => metrics
+        .AddAspNetCoreInstrumentation()
+        .AddHttpClientInstrumentation()
+        .AddPrometheusExporter()
+        .AddOtlpExporter(options =>
+        {
+            options.Endpoint = new Uri("http://otel-collector:4317");
+            options.Protocol = OtlpExportProtocol.Grpc;
+        }));
 
 
 // Ganti default logging provider dengan Serilog
@@ -52,6 +64,7 @@ try
     }
     app.UseRouting();
     app.MapGet("/", () => "Hello from Docker!");
+    app.MapPrometheusScrapingEndpoint(); 
 
     if (app.Environment.IsDevelopment())
     {

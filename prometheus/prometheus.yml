@@ -1,0 +1,8 @@
+global:
+  scrape_interval: 5s
+
+scrape_configs:
+  - job_name: 'synkrone-app'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['synkrone:8080']
