@@ -11,17 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Konfigurasi logger 
 Log.Logger = new LoggerConfiguration()
-    .Enrich.FromLogContext()
-    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-    .MinimumLevel.Override("System", LogEventLevel.Warning)
-    .Enrich.WithMachineName()
-    .Enrich.WithThreadId()
-    .Enrich.WithEnvironmentUserName()
-    .Enrich.WithProperty("service_name", "synkrone")
-    .Enrich.WithProperty("environment", "development")
-    .MinimumLevel.Debug()
-    .WriteTo.Console()
-    .WriteTo.GrafanaLoki("http://loki:3100", propertiesAsLabels: new[] { "service_name", "environment", "level"})
+    .ReadFrom.Configuration(builder.Configuration)
     .CreateLogger();
 
 
