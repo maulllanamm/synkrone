@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using OpenTelemetry.Metrics;
 using Serilog;
 using Serilog.Events;
+using Serilog.Sinks.Grafana.Loki;
 using synkrone.Data;
 using synkrone.Services.Implementations;
 using synkrone.Services.Interfaces;
@@ -10,8 +11,19 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Konfigurasi logger 
 Log.Logger = new LoggerConfiguration()
-    .ReadFrom.Configuration(builder.Configuration)
+    .Enrich.FromLogContext()
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+    .MinimumLevel.Override("System", LogEventLevel.Warning)
+    .Enrich.WithMachineName()
+    .Enrich.WithThreadId()
+    .Enrich.WithEnvironmentUserName()
+    .Enrich.WithProperty("service_name", "synkrone")
+    .Enrich.WithProperty("environment", "development")
+    .MinimumLevel.Debug()
+    .WriteTo.Console()
+    .WriteTo.GrafanaLoki("http://loki:3100", propertiesAsLabels: new[] { "service_name", "environment", "level"})
     .CreateLogger();
+
 
 // Ganti default logging provider dengan Serilog
 builder.Host.UseSerilog();
