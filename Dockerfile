@@ -1,5 +1,4 @@
 ﻿FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-USER $APP_UID
 WORKDIR /app
 EXPOSE 8080
 EXPOSE 8081
@@ -10,7 +9,6 @@ WORKDIR /src
 COPY ["synkrone.csproj", "./"]
 RUN dotnet restore "synkrone.csproj"
 COPY . .
-WORKDIR "/src/"
 RUN dotnet build "./synkrone.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish

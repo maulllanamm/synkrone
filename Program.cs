@@ -16,15 +16,6 @@ Log.Logger = new LoggerConfiguration()
 // Ganti default logging provider dengan Serilog
 builder.Host.UseSerilog();
 
-// Konfigurasi Matrix
-builder.Services.AddOpenTelemetry()
-    .WithMetrics(matrics => matrics
-        // Menambahkan sumber metrik otomatis dari ASP.NET Core
-        .AddAspNetCoreInstrumentation()
-        // Mengkonfigurasi exporter untuk Prometheus
-        .AddPrometheusExporter());
-
-// Add services to the container.
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -42,14 +33,23 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddScoped<IUserService, UserService>();
 
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    serverOptions.ListenAnyIP(8080); // HTTP
+});
+
 try
 {
     Log.Information("Starting up the application");
 
     var app = builder.Build();
-    
-    // Endpoint ini akan diekspos agar bisa di-scrape oleh Prometheus
-    app.MapPrometheusScrapingEndpoint();
+    using (var scope = app.Services.CreateScope())
+    {
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        db.Database.Migrate();
+    }
+    app.UseRouting();
+    app.MapGet("/", () => "Hello from Docker!");
 
     if (app.Environment.IsDevelopment())
     {
