@@ -46,6 +46,10 @@
       - "3000:3000"
     networks:
       - observability-net
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    depends_on:
+      - loki
 
 networks:
   observability-net:
