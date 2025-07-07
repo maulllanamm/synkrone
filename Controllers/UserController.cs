@@ -82,4 +82,29 @@ public class UserController: ControllerBase
         }
     }
 
+    [HttpPatch("{id:guid}/online-status")]
+    public async Task<IActionResult> UpdateOnlineStatus(Guid id, [FromQuery] bool isOnline)
+    {
+        _logger.LogInformation("Received request to update online status for userId: {UserId} to {IsOnline}", id, isOnline);
+
+        try
+        {
+            var result = await _userService.UpdateOnlineStatusAsync(id, isOnline);
+
+            if (!result)
+            {
+                _logger.LogWarning("User not found when trying to update online status. userId: {UserId}", id);
+                return NotFound("User not found.");
+            }
+
+            _logger.LogInformation("Online status updated successfully for userId: {UserId}", id);
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating online status for userId: {UserId}", id);
+            return StatusCode(500, "An error occurred while updating online status.");
+        }
+    }
+
 }

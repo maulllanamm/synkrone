@@ -122,4 +122,31 @@ public class UserService: IUserService
         };
     }
 
+    public async Task<bool> UpdateOnlineStatusAsync(Guid userId, bool isOnline)
+    {
+        _logger.LogInformation("Updating online status for userId: {UserId} to {IsOnline}", userId, isOnline);
+
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null)
+        {
+            _logger.LogWarning("User not found when updating online status. userId: {UserId}", userId);
+            return false;
+        }
+
+        user.IsOnline = isOnline;
+        user.LastSeen = DateTime.UtcNow;
+
+        try
+        {
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Successfully updated online status for userId: {UserId}", userId);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update online status for userId: {UserId}", userId);
+            return false;
+        }
+    }
+
 }
