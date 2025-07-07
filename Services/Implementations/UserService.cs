@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using synkrone.Data;
 using synkrone.Model.DTO;
 using synkrone.Services.Interfaces;
@@ -38,6 +39,31 @@ public class UserService: IUserService
             LastSeen = user.LastSeen,
             CreatedAt = user.CreatedAt
         };
+    }
+
+    public async Task<List<UserDto>> SearchUsersAsync(string searchTerm)
+    {
+        _logger.LogDebug("Fetching user from database: {searchTerm}", searchTerm);
+        var users = await _context.Users
+            .Where(u => u.Username.Contains(searchTerm) || 
+                        u.DisplayName.Contains(searchTerm) || 
+                        u.Email.Contains(searchTerm))
+            .Take(20)
+            .Select(u => new UserDto
+            {
+                Id = u.Id,
+                Username = u.Username,
+                Email = u.Email,
+                DisplayName = u.DisplayName,
+                ProfilePicture = u.ProfilePicture,
+                Bio = u.Bio,
+                IsOnline = u.IsOnline,
+                LastSeen = u.LastSeen,
+                CreatedAt = u.CreatedAt
+            })
+            .ToListAsync();
+
+        return users;
     }
 
 }

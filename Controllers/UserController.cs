@@ -32,4 +32,30 @@ public class UserController: ControllerBase
 
         return Ok(user);
     }
+    
+    [HttpGet("search")]
+    public async Task<IActionResult> SearchUsers([FromQuery] string searchTerm)
+    {
+        if (string.IsNullOrWhiteSpace(searchTerm))
+        {
+            _logger.LogWarning("Search term was empty or null.");
+            return BadRequest("Search term is required.");
+        }
+
+        try
+        {
+            _logger.LogInformation("Searching users with term: {SearchTerm}", searchTerm);
+
+            var users = await _userService.SearchUsersAsync(searchTerm);
+
+            _logger.LogInformation("Found {Count} users for search term: {SearchTerm}", users.Count, searchTerm);
+
+            return Ok(users);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while searching users with term: {SearchTerm}", searchTerm);
+            return StatusCode(500, "An error occurred while searching users.");
+        }
+    }
 }
