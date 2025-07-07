@@ -58,4 +58,28 @@ public class UserController: ControllerBase
             return StatusCode(500, "An error occurred while searching users.");
         }
     }
+    
+    [HttpPut("{id:guid}/profile")]
+    public async Task<IActionResult> UpdateProfile(Guid id, [FromBody] UpdateUserDto updateUserDto)
+    {
+        _logger.LogInformation("Received profile update for userId: {UserId}", id);
+
+        try
+        {
+            var updatedUser = await _userService.UpdateProfileAsync(id, updateUserDto);
+            _logger.LogInformation("User profile updated successfully for userId: {UserId}", id);
+            return Ok(updatedUser);
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning("Update failed for userId: {UserId} - {Message}", id, ex.Message);
+            return NotFound(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error while updating profile for userId: {UserId}", id);
+            return StatusCode(500, "An error occurred while updating the profile.");
+        }
+    }
+
 }
