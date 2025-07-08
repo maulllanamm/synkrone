@@ -85,25 +85,40 @@ public class AuthService: IAuthService
     
     public async Task<string> GenerateJwtTokenAsync(UserDto user)
     {
-        var claims = new[]
+        _logger.LogInformation("Generating JWT token for userId: {UserId}, username: {Username}", user.Id, user.Username);
+
+        try
         {
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Name, user.Username),
-            new Claim(ClaimTypes.Email, user.Email),
-            new Claim("displayName", user.DisplayName ?? user.Username)
-        };
-            
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtConfig.SecretKey));
-        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            
-        var token = new JwtSecurityToken(
-            issuer: _jwtConfig.Issuer,
-            audience: _jwtConfig.Audience,
-            claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(_jwtConfig.ExpirationInMinutes),
-            signingCredentials: credentials
-        );
-            
-        return new JwtSecurityTokenHandler().WriteToken(token);
+            var claims = new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Name, user.Username),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim("displayName", user.DisplayName ?? user.Username)
+            };
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtConfig.SecretKey));
+            var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+                issuer: _jwtConfig.Issuer,
+                audience: _jwtConfig.Audience,
+                claims: claims,
+                expires: DateTime.UtcNow.AddMinutes(_jwtConfig.ExpirationInMinutes),
+                signingCredentials: credentials
+            );
+
+            var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+
+            _logger.LogInformation("JWT token generated successfully for userId: {UserId}", user.Id);
+
+            return await Task.FromResult(tokenString);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to generate JWT token for userId: {UserId}", user.Id);
+            throw;
+        }
     }
+
 }
