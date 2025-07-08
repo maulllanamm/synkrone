@@ -6,4 +6,5 @@ public interface IAuthService
 {
     Task<AuthResponseDto> RegisterAsync(RegisterDto registerDto);
     Task<string> GenerateJwtTokenAsync(UserDto user);
+    Task<UserDto?> GetUserByIdAsync(Guid userId);
 }

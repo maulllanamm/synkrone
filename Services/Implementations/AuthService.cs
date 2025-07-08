@@ -120,5 +120,34 @@ public class AuthService: IAuthService
             throw;
         }
     }
+    
+    public async Task<UserDto?> GetUserByIdAsync(Guid userId)
+    {
+        _logger.LogInformation("Fetching user by ID: {UserId}", userId);
+
+        var user = await _context.Users.FindAsync(userId);
+
+        if (user == null)
+        {
+            _logger.LogWarning("User not found with ID: {UserId}", userId);
+            return null;
+        }
+
+        _logger.LogInformation("User found. ID: {UserId}, Username: {Username}", user.Id, user.Username);
+
+        return new UserDto
+        {
+            Id = user.Id,
+            Username = user.Username,
+            Email = user.Email,
+            DisplayName = user.DisplayName,
+            ProfilePicture = user.ProfilePicture,
+            Bio = user.Bio,
+            IsOnline = user.IsOnline,
+            LastSeen = user.LastSeen,
+            CreatedAt = user.CreatedAt
+        };
+    }
+
 
 }
