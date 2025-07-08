@@ -4,5 +4,6 @@ namespace synkrone.Services.Interfaces;
 
 public interface IAuthService
 {
+    Task<AuthResponseDto> RegisterAsync(RegisterDto registerDto);
     Task<string> GenerateJwtTokenAsync(UserDto user);
 }
