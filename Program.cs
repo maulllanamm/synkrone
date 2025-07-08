@@ -46,6 +46,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
         .UseSnakeCaseNamingConvention());
 
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.WebHost.ConfigureKestrel(serverOptions =>
 {
