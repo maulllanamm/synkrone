@@ -121,6 +121,61 @@ public class AuthService: IAuthService
         }
     }
     
+    public async Task<AuthResponseDto> LoginAsync(LoginDto loginDto)
+    {
+        _logger.LogInformation("Login attempt for username/email: {UsernameOrEmail}", loginDto.UsernameOrEmail);
+
+        var user = await _context.Users
+            .FirstOrDefaultAsync(u =>
+                u.Username == loginDto.UsernameOrEmail || u.Email == loginDto.UsernameOrEmail);
+
+        if (user == null)
+        {
+            _logger.LogWarning("Login failed: user not found for {UsernameOrEmail}", loginDto.UsernameOrEmail);
+            throw new UnauthorizedAccessException("Invalid credentials");
+        }
+
+        var passwordValid = BCrypt.Net.BCrypt.Verify(loginDto.Password, user.PasswordHash);
+
+        if (!passwordValid)
+        {
+            _logger.LogWarning("Login failed: invalid password for userId: {UserId}", user.Id);
+            throw new UnauthorizedAccessException("Invalid credentials");
+        }
+
+        // Update last seen
+        user.LastSeen = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation("Login successful for userId: {UserId}", user.Id);
+
+        // Manual mapping ke UserDto
+        var userDto = new UserDto
+        {
+            Id = user.Id,
+            Username = user.Username,
+            Email = user.Email,
+            DisplayName = user.DisplayName,
+            ProfilePicture = user.ProfilePicture,
+            Bio = user.Bio,
+            IsOnline = user.IsOnline,
+            LastSeen = user.LastSeen,
+            CreatedAt = user.CreatedAt
+        };
+
+        var token = await GenerateJwtTokenAsync(userDto);
+
+        _logger.LogInformation("JWT token generated for userId: {UserId}", user.Id);
+
+        return new AuthResponseDto
+        {
+            Token = token,
+            User = userDto,
+            ExpiresAt = DateTime.UtcNow.AddMinutes(_jwtConfig.ExpirationInMinutes)
+        };
+    }
+
+    
     public async Task<UserDto?> GetUserByIdAsync(Guid userId)
     {
         _logger.LogInformation("Fetching user by ID: {UserId}", userId);
