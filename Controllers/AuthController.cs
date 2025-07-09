@@ -36,4 +36,26 @@ public class AuthController: ControllerBase
             return StatusCode(500, new { message = "Internal server error" });
         }
     }
+    
+    [HttpPost("login")]
+    public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
+    {
+        _logger.LogInformation("Login endpoint called for: {UsernameOrEmail}", loginDto.UsernameOrEmail);
+
+        try
+        {
+            var result = await _authService.LoginAsync(loginDto);
+            return Ok(result);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            _logger.LogWarning(ex, "Login failed for: {UsernameOrEmail}", loginDto.UsernameOrEmail);
+            return Unauthorized(new { message = "Invalid username or password" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error during login");
+            return StatusCode(500, new { message = "Internal server error" });
+        }
+    }
 }
