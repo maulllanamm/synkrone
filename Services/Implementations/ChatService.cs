@@ -71,7 +71,7 @@ public class ChatService: IChatService
             ReceiverId = message.ReceiverId,
             GroupId = message.GroupId,
             ReplyToMessageId = message.ReplyToMessageId,
-            Reactions = new List<MessageReactionDto>(), // belum ada implementasi reaksi
+            Reactions = new List<MessageReactionDto>(), 
             Sender = new UserDto
             {
                 Id = message.Sender.Id,
